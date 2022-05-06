@@ -21,7 +21,7 @@ sql_code = """CREATE TABLE contacts (
 arr = []
 
 sql = '''
-    INSERT INTO phonebook
+    INSERT INTO contacts
     VALUES (%s, %s, %s, %s);
 '''
 
@@ -55,17 +55,17 @@ try:
     if to_change == "username":
 
         sql = '''
-            UPDATE phonebook SET username = %s WHERE id = %s;
+            UPDATE contacts SET username = %s WHERE id = %s;
         '''
         
     if to_change == "number":
         sql = '''
-            UPDATE phonebook SET number = %s WHERE id = %s;
+            UPDATE contacts SET number = %s WHERE id = %s;
         '''
         
     if to_change == "email":
         sql = '''
-            UPDATE phonebook SET email = %s WHERE id = %s;
+            UPDATE contacts SET email = %s WHERE id = %s;
         '''
     cursor.execute(sql, (data, user_id))
     
@@ -73,7 +73,7 @@ except:
     print("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     
 sql1 = '''
-    SELECT * FROM phonebook;
+    SELECT * FROM contacts;
 '''
 cursor.execute(sql1, [])
 table = cursor.fetchall()
@@ -86,7 +86,7 @@ column = input("What do you want to see?  Print '*' if you want to see full info
 if column == '*':
 
     sql = '''
-        SELECT * from phonebook
+        SELECT * from contacts
         WHERE id = %s;
 
     '''
@@ -102,19 +102,19 @@ if column == '*':
 else:
     if column == "username":
         sql = '''
-            SELECT username from phonebook
+            SELECT username from contacts
             WHERE id = %s;
         '''
         cursor.execute(sql, [id_number])
     if column == "number":
         sql = '''
-            SELECT number from phonebook
+            SELECT number from contacts
             WHERE id = %s;
         '''
         cursor.execute(sql, [id_number])
     if column == "email":
         sql = '''
-            SELECT email from phonebook
+            SELECT email from contacts
             WHERE id = %s;
         '''
         cursor.execute(sql, [id_number])
@@ -123,7 +123,7 @@ else:
     
 id_number = input("ID:")
 sql = '''
-    DELETE FROM phonebook 
+    DELETE FROM contacts
     WHERE id = %s;
 
 '''
