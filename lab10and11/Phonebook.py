@@ -1,133 +1,142 @@
 from re import S
 import psycopg2, csv
 
-conn = psycopg2.connect(
+config = psycopg2.connect(
   host='localhost', 
   database='postgres',
   port ='5432',
   user='postgres',
   password='postgres'
 )
-cursor = conn.cursor()
+
+current = config.cursor()
 
 sql_code = """CREATE TABLE contacts (
   id INTEGER,
-  PhoneNumber VARCHAR(250) NOT NULL,
-  FullName VARCHAR(250) NOT NULL,
-  Email VARCHAR(250) NOT NULL,
-  PRIMARY KEY (id)
+  Name VARCHAR(250) NOT NULL,
+  Number VARCHAR(250) NOT NULL,
+  Email VARCHAR(250) NOT NULL
+  created_on TIMESTAMP NOT NULL,
+        last_login TIMESTAMP 
 );"""
 
-arr = []
+def insert():
 
-sql = '''
-    INSERT INTO contacts
-    VALUES (%s, %s, %s, %s);
-'''
+    insert_table = '''
 
-try:
-    with open('a.csv') as f:
-        reader = csv.reader(f, delimiter=',')
+        INSERT INTO contacts VALUES(%s,%s,%s,%s);
+
+    '''
+
+    flag = input('yes если хотите ввести через терминал, no иначе: ')
+
+    if flag == "yes":
         
-        for row in reader:
-            # print(type(row))
-            # print(row)
-            row[0] = int(row[0])
-            arr.append(row)
-    for row in arr:
-        cursor.execute(sql, row)
+        id=str(input("Введите user ID:"))
 
-except:
-    id = int(input("ID:"))
+        name = str(input("Введите имя: "))
 
-    username = input("Username:")
+        number = str(input("Введите номер телефона: "))
+        
+        email = str(input("Введите почту:"))
+        
+        current.execute(insert_table, (id,name,number,email))
 
-    number = input("Number:")
 
-    email = input("eMail:")
-    cursor.execute(sql, (id, username, number, email))
-    
-try:
-    user_id = input("Enter ID: ")
-    to_change = input("What do you want to change?: ")
+
+
+    if flag == "no":
+
+        with open("a.csv", "r") as file:
+
+            f = csv.reader(file, delimiter=",")
+
+            for row in f:
+
+                current.execute(insert_table,row)
+
+        config.commit()
+
+def delete():
+
+    delete = """
+
+    DELETE FROM contacts WHERE name = %s;
+
+    """
+
+    name = str(input("Введите имя: "))
+
+    current.execute(delete,[name])
+
+def update():
+
+
+    id = input("Введите user ID: ")
+    to_change = input("Что вы хотите поменять? ")
     data = input("To what value set the old value?: ")
     to_change = to_change.lower()
-    if to_change == "username":
+    
+    if to_change == "name":
 
-        sql = '''
-            UPDATE contacts SET username = %s WHERE id = %s;
+        update = '''
+            UPDATE contacts SET name = %s WHERE id = %s;
         '''
         
     if to_change == "number":
-        sql = '''
+        update = '''
             UPDATE contacts SET number = %s WHERE id = %s;
         '''
         
     if to_change == "email":
-        sql = '''
+        update = '''
             UPDATE contacts SET email = %s WHERE id = %s;
         '''
-    cursor.execute(sql, (data, user_id))
-    
-except:
-    print("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    
-sql1 = '''
+    current.execute(update, (data, id))
+    config.commit()
+
+
+def select():
+
+    select = """
+
     SELECT * FROM contacts;
-'''
-cursor.execute(sql1, [])
-table = cursor.fetchall()
 
-for i in table:
-    print(*i, sep = "     ")
-print("~~~~~~")
-id_number = input("ID:")
-column = input("What do you want to see?  Print '*' if you want to see full information: ")
-if column == '*':
+    """
 
-    sql = '''
-        SELECT * from contacts
-        WHERE id = %s;
+    current.execute(select)
 
-    '''
-    cursor.execute(sql, [id_number])
+    print(current.fetchall(), sep='\n')
 
-    data = cursor.fetchone()
-    
-    print(f"ID: {data[0]}")
-    print(f"Username: {data[1]}")
-    print(f"Phone number: {data[2]}")
-    print(f"Email: {data[3]}")
+    config.commit()
 
-else:
-    if column == "username":
-        sql = '''
-            SELECT username from contacts
-            WHERE id = %s;
-        '''
-        cursor.execute(sql, [id_number])
-    if column == "number":
-        sql = '''
-            SELECT number from contacts
-            WHERE id = %s;
-        '''
-        cursor.execute(sql, [id_number])
-    if column == "email":
-        sql = '''
-            SELECT email from contacts
-            WHERE id = %s;
-        '''
-        cursor.execute(sql, [id_number])
-    data = cursor.fetchone()
-    print(*data)
-    
-id_number = input("ID:")
-sql = '''
-    DELETE FROM contacts
-    WHERE id = %s;
+while True:
 
-'''
-cursor.execute(sql, (id_number))
-    
-cursor.execute(sql_code)
-conn.commit()
+    command = str(input("insert,update,delete,select,exit: \n"))
+
+    if command == 'insert':
+
+        insert()
+
+    if command == 'delete':
+
+        delete()
+
+    if command == 'update':
+
+        update()
+
+    if command == 'select':
+
+        select()
+
+    if command == 'exit':
+
+        break
+
+
+current.close()
+
+config.commit()
+
+config.close()
